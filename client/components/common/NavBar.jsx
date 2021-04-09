@@ -201,26 +201,37 @@ const NavBar = (props) => {
       >
         <Typography variant="h6" gutterBottom>Sign In</Typography>
         <TextField
-          id="filled-username-input"
+          id="filled-username-input1"
           label="Username"
           type="username"
           autoComplete="current-username"
           variant="filled"
-          onChange={(e) => handleUsernameChange(e)}
+          // onChange={(e) => handleUsernameChange(e)}
         />
         <TextField
-          id="filled-password-input"
+          id="filled-password-input1"
           label="Password"
           type="password"
           autoComplete="current-password"
           variant="filled"
-          onChange={(e) => handlePasswordChange(e)}
+          // onChange={(e) => handlePasswordChange(e)}
         />
         <Divider />
         <Button 
           variant="contained" 
           color="secondary" 
-          onClick={(e) => handleLoginButtonClick(e)}
+          onClick={(e) => {
+            
+            // const textUsername = document.getElementById("filled-username-input1").value;
+            // const textPassword = document.getElementById("filled-password-input1").value;
+            // console.log('this is our user: ', textUsername)
+            // setUsernameInput(textUsername);
+            // setPasswordInput(textPassword);
+            // handleUsernameChange(e)
+            handleLoginButtonClick(e);
+          }
+          
+          }
         >
           Login
         </Button>
@@ -259,12 +270,18 @@ const NavBar = (props) => {
 
   // Update Username / Password states on every keystroke
   const handleUsernameChange = (event) => {
-    setIsLoggedIn(false);
-    setUsernameInput(event.target.value);
+    const textUsername = document.getElementById("filled-username-input1").value;
+    
+    console.log('this is our user: ', textUsername)
+    // setIsLoggedIn(false);
+    setUsernameInput(textUsername);
+    console.log("this is our users current state:", usernameInput)
   }
   const handlePasswordChange = (event) => {
-    setIsLoggedIn(false);
-    setPasswordInput(event.target.value);
+    // setIsLoggedIn(false);
+    const textPassword = document.getElementById("filled-password-input1").value;
+    console.log('this is our user: ', textPassword)
+    setPasswordInput(textPassword);
   }
 
   // Insert loginData as post request
@@ -291,6 +308,19 @@ const NavBar = (props) => {
 
   // Handle Login Button Click
   const handleLoginButtonClick = (event) => {
+    const textUsername = document.getElementById("filled-username-input1").value;
+    
+    console.log('this is our user: ', textUsername)
+    // setIsLoggedIn(false);
+    setUsernameInput(textUsername);
+    console.log("this is our users current state:", usernameInput)
+    
+
+    const textPassword = document.getElementById("filled-password-input1").value;
+    console.log('this is our user: ', textPassword)
+    console.log("this is our Password current state:", passwordInput)
+    setPasswordInput(textPassword);
+
     return fetchLogin('login');
   }
 
