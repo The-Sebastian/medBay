@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Avatar,
@@ -12,11 +12,6 @@ import {
   Box,
   TextField,
   Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions
 } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -77,13 +72,27 @@ const NavBar = (props) => {
     fetch('/api/getCartUser')
       .then((res) => res.json())
       .then((data) => {
-        console.log('Successfully retrieved user cart ', data);
+        // console.log('Successfully retrieved user cart ', data);
         // Do stuff with cart data
         setUsersCart(data.cart[0].products);
         console.log('The users cart is: ', usersCart);
       })
       .catch((err) => console.log('Unsuccessful cart retrieval: ', err))
   }
+
+  const handleDeleteItemClick = (event, itemId) => {
+    fetch('/api/deleteUserProduct', {
+      method: 'POST',
+      body: JSON.stringify({ id: itemId }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('The cart data.cart after deleting is: ', data.cart);
+        // setUsersCart(data);
+      })
+      .catch((err) => console.log('Unsuccessful delete error: ', err));
+  };
 
   // ------------------------------------------------------------------
 
@@ -134,35 +143,8 @@ const NavBar = (props) => {
     return (<div></div>);
   }
 
-  // Condition Profile Popover Depending if User is Logged In
-  // const LoggedInPopover = () => {
-  //   return (
-  //     <Box
-  //       className={classes.popover} 
-  //       display="flex" 
-  //       flexDirection="column"
-  //       justifyContent="space-between"
-  //       alignItems="center"
-  //     >
-  //       <Avatar />
-  //       <Typography 
-  //         variant="h5"
-  //         style={{marginTop: 18}}
-  //       >
-  //         Welcome, {LoggedInUser}
-  //       </Typography>
-  //       <Button 
-  //         variant="contained" 
-  //         color="secondary" 
-  //         style={{marginTop: 18}}
-  //         // onClick={(e) => console.log('signedout')}
-  //         onClick={(e) => handleSignoutButtonClick(e)}
-  //       >
-  //         Sign Out
-  //       </Button>
-  //     </Box>
-  //   )
-  // };
+  const usernameRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const ProfilePopover = (props) => {
     const isLoggedIn = props.isLoggedIn;
@@ -206,7 +188,7 @@ const NavBar = (props) => {
           type="username"
           autoComplete="current-username"
           variant="filled"
-          // onChange={(e) => handleUsernameChange(e)}
+          inputRef={usernameRef}
         />
         <TextField
           id="filled-password-input1"
@@ -214,31 +196,24 @@ const NavBar = (props) => {
           type="password"
           autoComplete="current-password"
           variant="filled"
-          // onChange={(e) => handlePasswordChange(e)}
+          inputRef={passwordRef}
         />
         <Divider />
         <Button 
           variant="contained" 
           color="secondary" 
           onClick={(e) => {
-            
-            // const textUsername = document.getElementById("filled-username-input1").value;
-            // const textPassword = document.getElementById("filled-password-input1").value;
-            // console.log('this is our user: ', textUsername)
-            // setUsernameInput(textUsername);
-            // setPasswordInput(textPassword);
-            // handleUsernameChange(e)
-            handleLoginButtonClick(e);
-          }
-          
-          }
+            handleLoginButtonClick(e, usernameRef.current.value, passwordRef.current.value);
+          }}
         >
           Login
         </Button>
         <Button 
           variant="contained" 
           color="primary" 
-          onClick={(e) => handleSignupButtonClick(e)}
+          onClick={(e) => {
+            handleSignupButtonClick(e, usernameRef.current.value, passwordRef.current.value)
+          }}
         >
           Signup
         </Button>
@@ -264,38 +239,14 @@ const NavBar = (props) => {
     return fetchSignout();
   }
 
-  // States for Username/Password Inputs
-  const [ usernameInput, setUsernameInput ] = useState('');
-  const [ passwordInput, setPasswordInput ] = useState('');
-
-  // Update Username / Password states on every keystroke
-  const handleUsernameChange = (event) => {
-    const textUsername = document.getElementById("filled-username-input1").value;
-    
-    console.log('this is our user: ', textUsername)
-    // setIsLoggedIn(false);
-    setUsernameInput(textUsername);
-    console.log("this is our users current state:", usernameInput)
-  }
-  const handlePasswordChange = (event) => {
-    // setIsLoggedIn(false);
-    const textPassword = document.getElementById("filled-password-input1").value;
-    console.log('this is our user: ', textPassword)
-    setPasswordInput(textPassword);
-  }
-
-  // Insert loginData as post request
-  const loginData = {
-    method: 'POST',
-    body: JSON.stringify({ username: usernameInput, password: passwordInput }),
-    headers: { 'Content-Type': 'application/json' },
-  }
-
   // Fetch from server
-  const fetchLogin = (buttonType) => {
+  const fetchLogin = (buttonType, userInput, pwInput) => {
     const loginUrl = '/api/' + buttonType;
-    // fetch('/api/login', loginData)
-    fetch(loginUrl, loginData)
+    fetch(loginUrl, {
+      method: 'POST',
+      body: JSON.stringify({ username: userInput, password: pwInput }),
+      headers: { 'Content-Type': 'application/json' },
+    })
       .then((res) => res.json())
       .then((data) => {
         console.log('Logged In / Sign Up Successful: ', data);
@@ -307,26 +258,13 @@ const NavBar = (props) => {
   }
 
   // Handle Login Button Click
-  const handleLoginButtonClick = (event) => {
-    const textUsername = document.getElementById("filled-username-input1").value;
-    
-    console.log('this is our user: ', textUsername)
-    // setIsLoggedIn(false);
-    setUsernameInput(textUsername);
-    console.log("this is our users current state:", usernameInput)
-    
-
-    const textPassword = document.getElementById("filled-password-input1").value;
-    console.log('this is our user: ', textPassword)
-    console.log("this is our Password current state:", passwordInput)
-    setPasswordInput(textPassword);
-
-    return fetchLogin('login');
+  const handleLoginButtonClick = (event, username, password) => {
+    return fetchLogin('login', username, password);
   }
 
   // Handle Sign Up Button 
-  const handleSignupButtonClick = (event) => {
-    return fetchLogin('signup');
+  const handleSignupButtonClick = (event, username, password) => {
+    return fetchLogin('signup', username, password);
   }
 
   // ------------------------------------------------------------------
@@ -564,7 +502,12 @@ const NavBar = (props) => {
                             </Box>
                           </Box>
                           <Box>
-                            <IconButton>
+                            <IconButton
+                              onClick={(e) => {
+                                handleDeleteItemClick(e, item.productId);
+                                fetchCart();
+                              }}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </Box>
@@ -609,46 +552,7 @@ const NavBar = (props) => {
                 horizontal: 'center',
               }}
             >
-              {/* { isLoggedIn ? <LoggedInPopover /> : <LoggedOutPopover /> } */}
               <ProfilePopover isLoggedIn={isLoggedIn} />
-              <Box 
-                className={classes.popover} 
-                display="flex" 
-                flexDirection="column"
-              >
-                <Typography variant="h6" gutterBottom>Sign In</Typography>
-                <TextField
-                  id="filled-username-input"
-                  label="Username"
-                  type="username"
-                  autoComplete="current-username"
-                  variant="filled"
-                  onChange={(e) => handleUsernameChange(e)}
-                />
-                <TextField
-                  id="filled-password-input"
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  variant="filled"
-                  onChange={(e) => handlePasswordChange(e)}
-                />
-                <Divider />
-                <Button 
-                  variant="contained" 
-                  color="secondary" 
-                  onClick={(e) => handleLoginButtonClick(e)}
-                >
-                  Login
-                </Button>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={(e) => handleSignupButtonClick(e)}
-                >
-                  Signup
-                </Button>
-              </Box>
             </Popover>
             {/* ---------------------------------------------------------- */}
           </div>
